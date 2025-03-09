@@ -15,6 +15,7 @@ module Jekyll
 
     def convert(content)
 #      content.upcase
+      content
     end
   end
 end
