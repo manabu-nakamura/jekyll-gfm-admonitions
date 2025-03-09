@@ -14,7 +14,7 @@ module Jekyll
     end
 
     def convert(content)
-      content.upcase
+#      content.upcase
     end
   end
 end
