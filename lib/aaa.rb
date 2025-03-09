@@ -26,7 +26,8 @@ module JekyllGFMAdmonitions2
       unless doc.content.empty?
         doc.content = doc.content.dup unless doc.content.frozen?
 #        doc.content.gsub!(/--(\w+)--/, '<s>\1</s>')#o
-        doc.content.gsub!(/--(\w+)--/) { '<s>#{$1}</s>' }#x\1
+#        doc.content.gsub!(/--(\w+)--/) { '<s>#{$1}</s>' }##{$1}
+        doc.content.gsub!(/--(\w+)--/) { "<s>#{$1}</s>" }##{$1}
 #        doc.content.gsub!(/--(\w+)--/) { '<s>\1</s>' }#x\1
 #        doc.content.gsub!(/--(\w+)--/) { '<s>\\1</s>' }#x\1
 #        doc.content.gsub!(/--(\w+)--/) { "<s>\\1</s>" }#x\1
