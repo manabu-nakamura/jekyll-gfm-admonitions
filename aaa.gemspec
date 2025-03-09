@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 # jekyll-gfm-admonitions.gemspec
-#
 
 Gem::Specification.new do |spec|
   spec.name          = 'aaa'
