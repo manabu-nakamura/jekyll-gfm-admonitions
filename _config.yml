@@ -6,6 +6,7 @@ description: >-
 markdown: GFM
 plugins:
   - jekyll-gfm-admonitions
+  - aaa
 
 include:
   - README.md
