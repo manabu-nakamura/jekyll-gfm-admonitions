@@ -4,7 +4,7 @@ module Jekyll
       class KramdownParser
         alias :old_convert :convert
         def convert(content)
-          if !content.empty?
+          unless content.empty?
             content = content.dup unless content.frozen?
             content.gsub!(/--(\w+)--/, "<s>\\1</s>")
           end
