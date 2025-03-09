@@ -1,5 +1,8 @@
 module JekyllGFMAdmonitions2
   class GFMAdmonitionConverter2 < Jekyll::Generator
+    safe true
+    priority :lowest
+
     def generate(site)
       process_posts(site)
       process_pages(site)
