@@ -26,7 +26,7 @@ module JekyllGFMAdmonitions2
       unless doc.content.empty?
         doc.content = doc.content.dup unless doc.content.frozen?
         doc.content.gsub!(/--(\w+)--/) do
-          "<s>#{1}</s>"
+          "<s>$1</s>"
         end
       end
     end
