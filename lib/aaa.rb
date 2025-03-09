@@ -1,5 +1,25 @@
 # frozen_string_literal: true
 
+module Jekyll
+  class UpcaseConverter < Converter
+    safe true
+    priority :low
+
+    def matches(ext)
+      ext =~ /^\.md$/i
+    end
+
+    def output_ext(ext)
+      ".html"
+    end
+
+    def convert(content)
+      content.upcase
+    end
+  end
+end
+
+=begin
 module JekyllGFMAdmonitions2
   class GFMAdmonitionConverter2 < Jekyll::Generator
     safe true
@@ -25,10 +45,13 @@ module JekyllGFMAdmonitions2
     def process_doc_content(doc)
       unless doc.content.empty?
         doc.content = doc.content.dup unless doc.content.frozen?
-#        doc.content.gsub!(/--(\w+)--/, '<s>\1</s>')#o
-        doc.content.gsub!(/--(\w+)--/, "<s>\\1</s>")#o
-#        doc.content.gsub!(/--(\w+)--/) { '<s>#{$1}</s>' }##{$1}
+        doc.content.gsub!(/--(\w+)--/, '<s>\1</s>')#o
+#        doc.content.gsub!(/--(\w+)--/, "<s>\\1</s>")#o
 #        doc.content.gsub!(/--(\w+)--/) { "<s>#{$1}</s>" }#o
+#        doc.content.gsub!(/--(\w+)--/) do
+#          "<s>#{$1}</s>"
+#        end#o
+#        doc.content.gsub!(/--(\w+)--/) { '<s>#{$1}</s>' }#x#{$1}
 #        doc.content.gsub!(/--(\w+)--/) { '<s>\1</s>' }#x\1
 #        doc.content.gsub!(/--(\w+)--/) { '<s>\\1</s>' }#x\1
 #        doc.content.gsub!(/--(\w+)--/) { "<s>\\1</s>" }#x\1
@@ -38,10 +61,8 @@ module JekyllGFMAdmonitions2
 #        doc.content.gsub!(/--(\w+)--/) do
 #          '<s>\\1</s>'
 #        end#x\1
-#        doc.content.gsub!(/--(\w+)--/) do
-#          "<s>#{$1}</s>"
-#        end#xo
       end
     end
   end
 end
+=end
