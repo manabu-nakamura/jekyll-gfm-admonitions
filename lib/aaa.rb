@@ -16,6 +16,7 @@ module Jekyll
     def convert(content)
 #      content.upcase
       content.gsub!(/(<blockquote>[.\n]*<\/blockquote>)/, '\1'.upcase)
+      content
     end
   end
 end
