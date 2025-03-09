@@ -1,7 +1,7 @@
 module Jekyll
   module Converters
     class Markdown
-      class RedcarpetParser
+      class KramdownParser
         alias :old_convert :convert
         def convert(content)
           content.gsub!(/--(\w+)--/, "<s>\\1</s>")
