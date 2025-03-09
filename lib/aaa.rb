@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module JekyllGFMAdmonitions2
   class GFMAdmonitionConverter2 < Jekyll::Generator
     safe true
