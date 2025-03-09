@@ -28,7 +28,10 @@ module JekyllGFMAdmonitions2
 #        doc.content.gsub!(/--(\w+)--/, '<s>\1</s>')#o
 #        doc.content.gsub!(/--(\w+)--/) { '<s>\1</s>' }#x\1
 #        doc.content.gsub!(/--(\w+)--/) { '<s>\\1</s>' }#x\1
-        doc.content.gsub!(/--(\w+)--/) { "<s>\\1</s>" }#x
+#        doc.content.gsub!(/--(\w+)--/) { "<s>\\1</s>" }#x\1
+        doc.content.gsub!(/--(\w+)--/) do
+            "<s>\\1</s>"
+        end#x\1
       end
     end
   end
