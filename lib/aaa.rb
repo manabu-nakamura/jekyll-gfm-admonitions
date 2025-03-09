@@ -23,8 +23,8 @@ module JekyllGFMAdmonitions2
     def process_doc_content(doc)
       unless doc.content.empty?
         doc.content = doc.content.dup unless doc.content.frozen?
-        doc.content.gsub!(/--(\w+)--/, "<p>\\1</p>")
-        doc.content.gsub!(/-(\w+)-/, "<p>\\1</p>")
+        doc.content.gsub!(/--(\w+)--/, "")
+        doc.content.gsub!(/-(\w+)-/, "")
       end
     end
   end
