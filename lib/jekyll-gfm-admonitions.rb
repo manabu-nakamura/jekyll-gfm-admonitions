@@ -21,22 +21,42 @@ module JekyllGFMAdmonitions
   #
   # This generator processes both posts and pages, replacing admonition
   # syntax with HTML markup that includes appropriate iconography and CSS styling.
+  #
+  # CSS injection can be disabled via _config.yml:
+  #   gfm_admonitions:
+  #     inject_css: false
   class GFMAdmonitionConverter < Jekyll::Generator
     safe true
     priority :lowest
-    @admonition_pages = []
 
     class << self
       attr_reader :admonition_pages
+      attr_accessor :inject_css
+
+      def reset!
+        @admonition_pages = []
+        @inject_css = true
+      end
     end
 
+    reset!
 
     def generate(site)
+      self.class.reset!
+
+      inject_css_setting = site.config.dig('gfm_admonitions', 'inject_css')
+      self.class.inject_css = (inject_css_setting != false)
+
       init_converter(site)
       process_collections(site)
       process_pages(site)
-      Jekyll.logger.info 'GFMA:', 'Converted admonitions in' \
-        " #{self.class.admonition_pages.length} file(s)."
+      Jekyll.logger.info 'GFMA:', "Converted admonitions in #{self.class.admonition_pages.length} file(s)."
+
+      if self.class.inject_css
+        Jekyll.logger.debug 'GFMA:', 'CSS injection enabled.'
+      else
+        Jekyll.logger.info 'GFMA:', 'CSS injection disabled (gfm_admonitions.inject_css: false).'
+      end
     end
 
     def init_converter(site)
@@ -70,8 +90,9 @@ module JekyllGFMAdmonitions
       return unless doc.content != original_content
 
       # Store a reference to all the pages we modified, to inject the CSS post render
-      # (otherwise GitHub Pages sanitizes the CSS into plaintext)
-      self.class.admonition_pages << doc
+      # (otherwise GitHub Pages sanitizes the CSS into plaintext).
+      # Only track when CSS injection is enabled.
+      self.class.admonition_pages << doc if self.class.inject_css
     end
 
     def process_doc(doc)
@@ -122,7 +143,9 @@ module JekyllGFMAdmonitions
 
   # Insert the minified CSS before the closing head tag of all pages we put admonitions on
   Jekyll::Hooks.register :site, :post_render do
-    Jekyll.logger.info 'GFMA:', "Inserting admonition CSS in #{GFMAdmonitionConverter.admonition_pages.length} page(s)."
+    next unless GFMAdmonitionConverter.inject_css
+
+    Jekyll.logger.info 'GFMA:', "Injecting admonition CSS in #{GFMAdmonitionConverter.admonition_pages.length} page(s)."
 
     GFMAdmonitionConverter.admonition_pages.each do |page|
       Jekyll.logger.debug 'GFMA:', "Appending admonition style to '#{page.path}'."

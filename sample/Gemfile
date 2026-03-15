@@ -4,3 +4,6 @@ source 'https://rubygems.org'
 gem 'jekyll', '~> 4.0'
 gem 'jekyll-gfm-admonitions', path: '..', group: :jekyll_plugins
 gem 'jekyll-remote-theme'
+# Ruby 3.4 removed these from default gems; Jekyll 4.x still requires them
+gem 'csv'
+gem 'base64'

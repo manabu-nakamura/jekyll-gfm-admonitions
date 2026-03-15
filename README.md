@@ -1,19 +1,9 @@
 # GitHub Flavored Admonitions
 
 A Jekyll plugin to render GitHub-flavored admonitions in your Jekyll sites.
-This plugin allows you to use GitHub-flavored markdown syntax to create stylish admonition
-blocks for notes, warnings, tips, cautions, and important messages.
+Supports the same `> [!TYPE]` syntax used on GitHub, with matching icons and styles.
 
-## Features
-
-* Admonitions
-* Admonition titles
-* Jekyll support
-* GitHub Pages support
-
-## Supported Admonitions
-
-The following admonitions are supported:
+## Supported admonitions
 
 | **Type**      | **Markdown**          |
 |---------------|-----------------------|
@@ -23,10 +13,7 @@ The following admonitions are supported:
 | Warning       | `> [!WARNING]`        |
 | Caution       | `> [!CAUTION]`        |
 
-
-### Example Usage
-
-To use admonitions in your markdown files, simply add the following syntax:
+### Usage
 
 ```markdown
 > [!NOTE]
@@ -36,16 +23,14 @@ To use admonitions in your markdown files, simply add the following syntax:
 > [!TIP]
 > Optional information to help a user be more successful.
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > Crucial information necessary for users to succeed.
 
-  > [!WARNING]  
-  > Critical content demanding immediate
-  > user attention due to potential risks.
+> [!WARNING]
+> Critical content demanding immediate user attention due to potential risks.
 
 > [!CAUTION]
 > Negative potential consequences of an action.
-> Opportunity to provide more context.
 ```
 
 > [!NOTE]
@@ -55,20 +40,23 @@ To use admonitions in your markdown files, simply add the following syntax:
 > [!TIP]
 > Optional information to help a user be more successful.
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > Crucial information necessary for users to succeed.
 
-  > [!WARNING]  
-  > Critical content demanding immediate
-  > user attention due to potential risks.
+> [!WARNING]
+> Critical content demanding immediate user attention due to potential risks.
 
 > [!CAUTION]
 > Negative potential consequences of an action.
-> Opportunity to provide more context.
 
 #### Custom titles
 
-Custom admonition titles are supported:
+Custom admonition titles are also supported:
+
+```markdown
+> [!TIP] My own title
+> Fancy!
+```
 
 ```markdown
 > [!TIP] My own title
@@ -85,106 +73,221 @@ Custom admonition titles are supported:
 > [GitHub rendered README](https://github.com/Helveg/jekyll-gfm-admonitions/blob/main/README.md#custom-titles)s
 > etc.
 
+---
 
 ## Installation
 
-To install the plugin, add it to your Jekyll project's `Gemfile`:
+There are two setups depending on your use case:
+
+- **[Standard Jekyll site](#standard-jekyll-site)** — you run Jekyll locally or on your own CI.
+- **[GitHub Pages via GitHub Actions](#github-pages-via-github-actions)** — you deploy from a GitHub repository using the free GitHub Pages hosting.
+
+---
+
+## Standard Jekyll site
+
+### 1. Add to your Gemfile
 
 ```ruby
 group :jekyll_plugins do
-   
-   # Other plugins go here ...
-   
-   # ... Add this line:
-   gem "jekyll-gfm-admonitions"
+  # other plugins ...
+  gem "jekyll-gfm-admonitions"
 end
 ```
 
-Then run:
+Then install:
 
 ```bash
 bundle install
 ```
 
-### Configuring Jekyll
-
-Next, you need to enable the plugin in your Jekyll configuration file (`_config.yml`):
+### 2. Enable in `_config.yml`
 
 ```yaml
 plugins:
   - jekyll-gfm-admonitions
 ```
 
-Then, during `build`/`serve`, you should see logs similar to:
+### 3. Build or serve
+
+```bash
+bundle exec jekyll build
+# or
+bundle exec jekyll serve
+```
+
+During the build you will see:
 
 ```
-GFMA: Converted adminitions in 36 file(s).
+GFMA: Converted admonitions in 36 file(s).
 GFMA: Injecting admonition CSS in 36 page(s).
 ```
 
-More details are available by passing the `--verbose` flag to your `jekyll` command.
+Pass `--verbose` for per-file debug output.
 
-## When using GitHub Pages
+---
 
-To enable custom plugins in your Jekyll build for GitHub Pages, you need to use GitHub
-Actions (GHA) to build and deploy your Jekyll site. For detailed instructions on setting
-up GitHub Actions for your Jekyll project, please follow this link: 
-[GitHub Actions Setup for Jekyll](https://jekyllrb.com/docs/continuous-integration/github-actions/).
+## GitHub Pages via GitHub Actions
 
-After following the steps you will have to set up a minimal valid Jekyll project.
+GitHub Pages' default build pipeline does not support custom plugins. You need to
+build your site with GitHub Actions instead and deploy the result. The steps below
+set that up from scratch.
 
-### Add a `_config.yml`
+### 1. Enable GitHub Actions as the Pages source
+
+1. Open your repository on GitHub.
+2. Go to **Settings → Pages**.
+3. Under **Build and deployment → Source**, select **GitHub Actions**.
+
+### 2. Create the workflow file
+
+Create `.github/workflows/jekyll.yml` in your repository:
 
 ```yaml
-# Site settings
+name: Deploy Jekyll site to Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Build with Jekyll
+        run: bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
+        env:
+          JEKYLL_ENV: production
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+### 3. Create a `Gemfile`
+
+```ruby
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+gem "jekyll"
+
+group :jekyll_plugins do
+  gem "jekyll-gfm-admonitions"
+  gem "jekyll-optional-front-matter"
+  gem "github-pages"
+end
+```
+
+Then generate a lockfile locally (requires Ruby + Bundler):
+
+```bash
+bundle install
+```
+
+Commit both `Gemfile` and `Gemfile.lock`.
+
+### 4. Create `_config.yml`
+
+```yaml
 title: Your Project Title
-repository: your-username/your-repository
 description: >-
-  A description of your project
+  A description of your project.
 
-markdown: GFM 
+repository: your-username/your-repository
+
+markdown: GFM
+
 plugins:
-- jekyll-gfm-admonitions
-- jekyll-optional-front-matter
+  - jekyll-gfm-admonitions
+  - jekyll-optional-front-matter
 
-exclude: 
-  - "**/*.ts" # Exclude source code files!
-  - "**/*.js"
-  - "*.ts" # Also those in the root directory!
-  - "*.js"
-  - "*.json" # Don't forget about assets!
-  - node_modules/ # And large vendored directories
-  # And these ignore all the artifacts the build produces:
-  - .sass-cache/
-  - .jekyll-cache/
-  - gemfiles/
+exclude:
   - Gemfile
   - Gemfile.lock
-  - vendor/bundle/
-  - vendor/cache/
-  - vendor/gems/
-  - vendor/ruby/
+  - vendor/
+  - node_modules/
+  - .sass-cache/
+  - .jekyll-cache/
 ```
 
 > [!CAUTION]
->
-> For private repositories, make sure you exclude your source code files from the Jekyll
-> build, or they might be publicly deployed! Also exclude large vendored package
-> directories such as `node_modules/`.
+> For private repositories, make sure you exclude your source code files from the
+> Jekyll build, or they may be publicly deployed. Add patterns for any file types
+> you do not want published, for example:
+> ```yaml
+> exclude:
+>   - "**/*.ts"
+>   - "**/*.js"
+>   - "*.json"
+> ```
 
-### Add a `Gemfile`:
+### 5. Push and verify
 
-```ruby
-source 'https://rubygems.org'
- 
-gem 'jekyll'
-group :jekyll_plugins do
-  gem 'jekyll-gfm-admonitions'
-  gem 'jekyll-optional-front-matter'
-  gem 'github-pages'
-end
-gem 'jekyll-remote-theme'
+Push your changes to `main`. GitHub Actions will build and deploy your site automatically.
+You can monitor the build under the **Actions** tab of your repository.
+
+---
+
+## Configuration
+
+### Disabling CSS injection (custom themes)
+
+By default the plugin injects its own stylesheet into every page that contains admonitions.
+If your theme already provides `markdown-alert` styles (e.g. **Minimal Mistakes**, **Chirpy**,
+or any theme that mirrors GitHub's admonition CSS), you can disable injection so the plugin
+only handles parsing and rendering:
+
+```yaml
+gfm_admonitions:
+  inject_css: false
 ```
+
+When disabled the build log confirms:
+
+```
+GFMA: Converted admonitions in 36 file(s).
+GFMA: CSS injection disabled (gfm_admonitions.inject_css: false).
+```
+
+The admonition HTML (`<div class="markdown-alert markdown-alert-note">` etc.) is still
+emitted — your theme's CSS takes full control of the appearance.
+
+---
 
 ## License
 
@@ -192,7 +295,6 @@ This project is licensed under the MIT License. See the [LICENSE.txt](LICENSE.tx
 for details.
 
 ## Contributing
-
 
 > [!TIP]
 > Contributions are welcome! Please feel free to submit issues or pull requests.
