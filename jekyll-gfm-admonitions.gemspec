@@ -22,4 +22,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'jekyll', '>= 3.0', '< 5.0'
   spec.add_dependency 'octicons', '~> 19.8'
   spec.add_development_dependency 'bundler', '~> 2.0'
+  spec.add_development_dependency 'rspec', '~> 3.13'
+  spec.add_development_dependency 'rake', '~> 13.0'
 end

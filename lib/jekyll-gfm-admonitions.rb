@@ -100,7 +100,7 @@ module JekyllGFMAdmonitions
       return if doc.content.empty?
 
       # If the content is frozen, we need to duplicate it so that we can modify it
-      doc.content = doc.content.dup unless doc.content.frozen?
+      doc.content = doc.content.dup if doc.content.frozen?
 
       code_blocks = []
       # Temporarily replace code blocks by a tag, so that we don't process any admonitions
@@ -119,24 +119,29 @@ module JekyllGFMAdmonitions
     end
 
     def convert_admonitions(doc)
-      doc.content.gsub!(/^(\s*)>\s*\[!(IMPORTANT|NOTE|WARNING|TIP|CAUTION)\]([^\n]*)\n((?:\1\s*>\s*[^\n]*(?:\n|$))(?:(?!\s*>\s*\[!)\1\s*>\s*[^\n]*(?:\n|$))*)/) do
+      doc.content.gsub!(/^([^\S\n]*)>[^\S\n]*\[!(IMPORTANT|NOTE|WARNING|TIP|CAUTION)\]([^\n]*)\n((?:\1[^\S\n]*>[^\S\n]*[^\n]*(?:\n|$))(?:(?![^\S\n]*>[^\S\n]*\[!)\1[^\S\n]*>[^\S\n]*[^\n]*(?:\n|$))*)/) do
         initial_indent = ::Regexp.last_match(1)
         type = ::Regexp.last_match(2).downcase
         title = ::Regexp.last_match(3).strip.empty? ? type.capitalize : ::Regexp.last_match(3).strip
-        text = ::Regexp.last_match(4).gsub(/^#{Regexp.escape(initial_indent)}\s*>\s*/, '').strip
+        text = ::Regexp.last_match(4).gsub(/^#{Regexp.escape(initial_indent)}[^\S\n]*>[^\S\n]*/, '').strip
 
         icon = Octicons::Octicon.new(ADMONITION_ICONS[type]).to_svg
-        admonition_html(type, title, text, icon)
+        "#{initial_indent}#{admonition_html(type, title, text, icon)}"
       end
 
-      # 🛠 Ensure a blank line exists after each admonition block to prevent Markdown parsing issues.
+      # Ensure a blank line exists after each admonition block to prevent Markdown parsing issues.
       doc.content.gsub!(/(<\/div>)(?!\n\n)/, "\\1\n\n")
     end
 
     def admonition_html(type, title, text, icon)
+      body = @markdown.convert(text)
+      body = body.gsub(/href="(?!https?:\/\/)([^"]*?)\.md(#[^"]*?)?"/) do
+        anchor = ::Regexp.last_match(2) || ''
+        "href=\"#{::Regexp.last_match(1)}.html#{anchor}\""
+      end
       "<div class='markdown-alert markdown-alert-#{type}'>" \
         "<p class='markdown-alert-title'>#{icon} #{title}</p>" \
-        "#{@markdown.convert(text)}" \
+        "#{body}" \
       "</div>"
     end
   end
