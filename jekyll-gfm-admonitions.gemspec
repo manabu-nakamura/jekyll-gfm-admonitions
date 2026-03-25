@@ -4,7 +4,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = 'jekyll-gfm-admonitions'
-  spec.version       = '1.4.0'
+  spec.version       = '1.4.1'
   spec.authors       = ['Robin De Schepper']
   spec.email         = ['robin.deschepper93@gmail.com']
 

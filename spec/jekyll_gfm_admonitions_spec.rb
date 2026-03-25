@@ -101,8 +101,16 @@ RSpec.describe JekyllGFMAdmonitions::GFMAdmonitionConverter do
     it 'preserves indentation for admonitions inside list items' do
       doc = doc_with("1. item\n\n   > [!NOTE]\n   > indented body\n")
       converter.send(:convert_admonitions, doc)
-      # The replacement div must start at the same column as the blockquote
+      # Every line of the replacement HTML must carry the same indent
       expect(doc.content).to match(/^   <div/)
+      expect(doc.content).to match(/^   <\/div>/)
+    end
+
+    it 'does not leave a bare </div> at column 0 for indented admonitions' do
+      # A bare </div> at column 0 causes kramdown to emit <p>&lt;/div&gt;</p>
+      doc = doc_with("- item\n\n  > [!NOTE]\n  > body\n")
+      converter.send(:convert_admonitions, doc)
+      expect(doc.content).not_to match(/^<\/div>/)
     end
 
     it 'captures multi-line body correctly' do
