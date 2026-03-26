@@ -79,6 +79,71 @@ RSpec.describe JekyllGFMAdmonitions::GFMAdmonitionConverter do
       converter.send(:process_doc, doc)
       expect(doc.content).to eq(original)
     end
+
+    # -----------------------------------------------------------------------
+    # 4-space / tab indented code blocks are not converted
+    # -----------------------------------------------------------------------
+
+    context 'indented (4-space/tab) code blocks' do
+      it 'does not convert 4-space indented admonition-like content' do
+        content = "\n\n    > [!NOTE]\n    > this is code, not an admonition!\n"
+        doc = doc_with(content)
+        converter.send(:process_doc, doc)
+        expect(doc.content).to include('> [!NOTE]')
+        expect(doc.content).not_to include('markdown-alert')
+      end
+
+      it 'does not convert tab-indented admonition-like content' do
+        content = "\n\n\t> [!WARNING]\n\t> tabbed code block\n"
+        doc = doc_with(content)
+        converter.send(:process_doc, doc)
+        expect(doc.content).to include('> [!WARNING]')
+        expect(doc.content).not_to include('markdown-alert')
+      end
+
+      it 'does not convert 4-space indented content at start of document' do
+        content = "    > [!TIP]\n    > code at top of file\n"
+        doc = doc_with(content)
+        converter.send(:process_doc, doc)
+        expect(doc.content).to include('> [!TIP]')
+        expect(doc.content).not_to include('markdown-alert')
+      end
+
+      it 'restores 4-space indented code block content exactly' do
+        original = "paragraph\n\n    some code\n    more code\n"
+        doc = doc_with(original)
+        converter.send(:process_doc, doc)
+        expect(doc.content).to eq(original)
+      end
+
+      it 'still converts a real admonition when document also contains an indented code block' do
+        content = "paragraph\n\n    some code\n\n> [!NOTE]\n> real admonition\n"
+        doc = doc_with(content)
+        converter.send(:process_doc, doc)
+        expect(doc.content).to include('markdown-alert-note')
+        expect(doc.content).to include('    some code')
+      end
+
+      it 'still converts 2-space indented admonitions inside list items' do
+        doc = doc_with("- item\n\n  > [!CAUTION]\n  > caution text\n")
+        converter.send(:process_doc, doc)
+        expect(doc.content).to include('markdown-alert-caution')
+      end
+
+      it 'still converts 3-space indented admonitions inside list items' do
+        doc = doc_with("1. item\n\n   > [!TIP]\n   > tip text\n")
+        converter.send(:process_doc, doc)
+        expect(doc.content).to include('markdown-alert-tip')
+      end
+
+      it 'restores multiple indented code blocks independently' do
+        original = "para\n\n    first block\n\nmore text\n\n    second block\n"
+        doc = doc_with(original)
+        converter.send(:process_doc, doc)
+        expect(doc.content).to include('    first block')
+        expect(doc.content).to include('    second block')
+      end
+    end
   end
 
   # -----------------------------------------------------------------------

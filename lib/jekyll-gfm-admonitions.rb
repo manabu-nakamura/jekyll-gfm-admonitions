@@ -103,16 +103,30 @@ module JekyllGFMAdmonitions
       doc.content = doc.content.dup if doc.content.frozen?
 
       code_blocks = []
-      # Temporarily replace code blocks by a tag, so that we don't process any admonitions
-      # inside of code blocks.
+      # Temporarily replace fenced code blocks by a tag, so that we don't process any
+      # admonitions inside of code blocks.
       doc.content.gsub!(/(?:^|\n)(?<!>)\s*```.*?```/m) do |match|
         code_blocks << match
         "```{{CODE_BLOCK_#{code_blocks.length - 1}}}```"
       end
 
+      indented_blocks = []
+      # Temporarily replace 4-space/tab indented code blocks (CommonMark §4.4).
+      # These must be preceded by a blank line or appear at start of content —
+      # indented code blocks cannot interrupt a paragraph.
+      doc.content.gsub!(/(\A|\n\n)((?:(?:[ ]{4,}|\t)[^\n]*(?:\n|\z))+)/) do
+        anchor = ::Regexp.last_match(1)
+        block  = ::Regexp.last_match(2)
+        indented_blocks << block
+        "#{anchor}{{INDENTED_CODE_BLOCK_#{indented_blocks.length - 1}}}"
+      end
+
       convert_admonitions(doc)
 
-      # Put the code blocks back in place
+      # Restore indented code blocks, then fenced code blocks.
+      doc.content.gsub!(/\{\{INDENTED_CODE_BLOCK_(\d+)\}\}/) do
+        indented_blocks[::Regexp.last_match(1).to_i]
+      end
       doc.content.gsub!(/```\{\{CODE_BLOCK_(\d+)}}```/) do
         code_blocks[::Regexp.last_match(1).to_i]
       end
